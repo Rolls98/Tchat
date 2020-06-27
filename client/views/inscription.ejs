@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <%- include("partials/style.ejs") %>
+</head>
+
+<body>
+    <div class="connex">
+        <form id="inscr">
+            <div class="form-group">
+                <label for="login">Login</label>
+                <input type="text" class="form-control" id="login" placeholder="EX : Nan2020">
+            </div>
+            <div class="custom-control custom-checkbox">
+                <label for="">Sexe : </label>
+                <input type="radio" class="check" name="sexe" value="M"><label for="M">M</label>
+                <input type="radio" class="check" name="sexe" value="F"><label for="F">F</label>
+            </div>
+            <div class="form-group">
+                <label for="nvpsd">Mot de passe</label><br>
+                <input type="password" class="form-control" name="password" id="password" placeholder="**************">
+                <label for="cfpsd">confirmer votre mot de passe</label>
+                <input type="password" class="form-control" name="cfpassword" id="cpassword"
+                    placeholder="**************">
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-lg btn-primary w-100" value="Inscription">
+            </div>
+        </form>
+    </div>
+
+    <%- include("partials/bootstrap.ejs") %>
+</body>
+
+</html>
