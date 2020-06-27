@@ -73,7 +73,10 @@ db.once("open", () => {
   app.post("/c_disc", async (req, res) => {
     let info = req.body;
     console.log("infodisc : ", info.login);
-    let r = await Client.updateOne({ login: info.login }, { connect: false });
+    let r = await Client.updateOne(
+      { login: info.login },
+      { connect: false, lastConnexion: info.last }
+    );
     if (r.nModified == 1 && r.n == 1) {
       res.json({ success: true });
     } else {

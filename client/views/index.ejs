@@ -40,6 +40,7 @@
         top: 65px;
         right: 190px;
       }
+
       .disc {
         display: inline-block;
         width: 18px;
@@ -63,6 +64,9 @@
         <div class="col-md-4 col-xl-3 chat">
           <div class="card mb-sm-3 mb-md-0 contacts_card">
             <div class="card-header">
+              <h5 style="color: white; font-weight: bold;">
+                <%=locals.infos.login%>
+              </h5>
               <div class="input-group">
                 <input
                   type="text"
@@ -111,10 +115,8 @@
                     id="msg"
                   ></textarea>
                   <div class="input-group-append">
-                    <button>
-                      <span class="input-group-text send_btn"
-                        ><i class="fas fa-location-arrow"></i
-                      ></span>
+                    <button class="input-group-text send_btn">
+                      <i class="fas fa-location-arrow"></i>
                     </button>
                   </div>
                 </div>
@@ -125,7 +127,7 @@
       </div>
     </div>
 
-    <script></script>
+    <script src="script/moment.js"></script>
     <script src="http://localhost:8002/socket.io/socket.io.js"></script>
     <script src="script/script.js"></script>
     <script src="script/tchat.js"></script>

@@ -80,7 +80,7 @@ io.sockets.on("connection", async (socket) => {
     let result = await axios.post("http://localhost:8001/nvClient", { login });
     if (result.data.success) {
       clients = await contr.Users();
-      console.log("client : ", clients);
+
       clients.forEach((c) => {
         if (c.login == login) {
           c.connect = true;
@@ -89,6 +89,13 @@ io.sockets.on("connection", async (socket) => {
       socket.emit("allUsers", clients);
       socket.broadcast.emit("allUsers", clients);
     }
+  });
+
+  socket.on("write", (client) => {
+    socket.broadcast.emit("write", client);
+  });
+  socket.on("nowrite", (client) => {
+    socket.broadcast.emit("nowrite", client);
   });
   // socket.emit("allUsers", clients);
   socket.emit("allMessage", messages);
@@ -114,6 +121,7 @@ io.sockets.on("connection", async (socket) => {
     if (me != null) {
       let result = await axios.post("http://localhost:8001/c_disc", {
         login: me,
+        last: new Date(),
       });
       if (result.data.success) {
         clients = await contr.Users();
@@ -133,6 +141,7 @@ io.sockets.on("connection", async (socket) => {
     if (me != null) {
       let result = await axios.post("http://localhost:8001/c_disc", {
         login: me,
+        last: new Date(),
       });
       if (result.data.success) {
         clients = await contr.Users();

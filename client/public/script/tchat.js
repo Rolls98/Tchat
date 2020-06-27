@@ -1,5 +1,7 @@
 let socket = io.connect("http://localhost:8002/");
 
+let typingTimer = null;
+let doneTypingInterval = 1000;
 let contact = document.querySelector(".contacts");
 let mylogin = document.querySelector("#me").textContent;
 let chat = document;
@@ -10,6 +12,7 @@ let me = null;
 let form = document.querySelector("#form");
 let headerMessage = document.querySelector(".card-header.msg_head");
 let bodyMessage = document.querySelector(".card-body.msg_card_body");
+let linkActive = null;
 
 socket.emit("nvClient", mylogin);
 
@@ -18,8 +21,8 @@ disc.addEventListener("click", () => {
 });
 socket.on("allUsers", (users) => {
   contact.innerHTML = "";
-  membres = [...users];
-  for (user of users) {
+  membres = [...users].sort(filterByOnline);
+  for (user of membres) {
     console.log(user.messages);
     if (user.login == mylogin) {
       me = user;
@@ -41,7 +44,10 @@ socket.on("allUsers", (users) => {
     imgUser.className = "rounded-circle user_img";
     span.className = user.connect ? "online_icon" : "online_icon offline";
     p.innerHTML =
-      user.login + (user.connect ? "online" : " offline " + user.last);
+      user.login +
+      (user.connect
+        ? " online"
+        : " offline " + moment(new Date(user.last)).fromNow());
     div1.className = "d-flex bd-highlight";
     divImg.className = "img_cont";
     divInfo.className = "user_info";
@@ -70,6 +76,8 @@ socket.on("allUsers", (users) => {
     let lien = link;
     let m_msg = "";
     link.addEventListener("click", (e) => {
+      $("#msg")[0].value = "";
+      linkActive = lien;
       socket.on("allUsers", (users) => {
         debugger;
         membres = [...users];
@@ -106,7 +114,7 @@ socket.on("allUsers", (users) => {
         </div>
         <div class="user_info" id="dest">
           <span>Chat with ${user[0].login}</span>
-          <p>${messages.length}</p>
+          <p>${messages.length} message(s)</p>
         </div>
         <div class="video_cam">
           <span><i class="fas fa-video"></i></span>
@@ -138,7 +146,9 @@ socket.on("allUsers", (users) => {
           </div>
           <div class="msg_cotainer">
             ${message.msg}
-            <span class="msg_time">${message.date}</span>
+            <span class="msg_time">${moment(new Date(message.date)).format(
+              "hh:mm:ss , dddd"
+            )}</span>
           </div>
         </div>`;
         } else if (message.env == me.id) {
@@ -147,7 +157,9 @@ socket.on("allUsers", (users) => {
           
           <div class="msg_cotainer_send">
             ${message.msg}
-            <span class="msg_time_send">${message.date}</span>
+            <span class="msg_time_send">${moment(new Date(message.date)).format(
+              "hh:mm:ss , dddd"
+            )}</span>
           </div>
           <div class="img_cont_msg">
             <img
@@ -170,35 +182,41 @@ socket.on("allUsers", (users) => {
 
 socket.on("nv_msg", (msg) => {
   let m_msg = "";
+
   if (msg.env == me.id) {
     m_msg = `
-    <div class="d-flex justify-content-start mb-4">
-    <div class="img_cont_msg">
-      <img
-        src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"
-        class="rounded-circle user_img_msg"
-      />
-    </div>
-    <div class="msg_cotainer">
-      ${msg.msg}
-      <span class="msg_time">${msg.date}</span>
-    </div>
-  </div>`;
-  } else if (msg.dest == me.id) {
+      <div class="d-flex justify-content-start mb-4">
+      <div class="img_cont_msg">
+        <img
+          src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"
+          class="rounded-circle user_img_msg"
+        />
+      </div>
+      <div class="msg_cotainer">
+        ${msg.msg}
+        <span class="msg_time">${msg.date}</span>
+      </div>
+    </div>`;
+  } else if (
+    msg.dest == me.id &&
+    linkActive.href.substr(linkActive.href.indexOf("#") + 1) == msg.env
+  ) {
     m_msg = `
-    <div class="d-flex justify-content-end mb-4">
-    
-    <div class="msg_cotainer_send">
-      ${msg.msg}
-      <span class="msg_time_send">${msg.date}</span>
-    </div>
-    <div class="img_cont_msg">
-      <img
-        src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"
-        class="rounded-circle user_img_msg"
-      />
-    </div>
-  </div>`;
+      <div class="d-flex justify-content-end mb-4">
+      
+      <div class="msg_cotainer_send">
+        ${msg.msg}
+        <span class="msg_time_send">${moment(new Date(msg.date)).format(
+          "hh:mm:ss"
+        )}</span>
+      </div>
+      <div class="img_cont_msg">
+        <img
+          src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"
+          class="rounded-circle user_img_msg"
+        />
+      </div>
+    </div>`;
   }
 
   bodyMessage.innerHTML += m_msg;
@@ -243,6 +261,43 @@ search.addEventListener("input", (e) => {
   }
 });
 
+$("#msg")[0].oninput = () => {
+  let destId = linkActive.href.substr(linkActive.href.indexOf("#") + 1);
+  socket.emit("write", { id: me.id, dest: destId });
+};
+
+$("#msg").keyup(function () {
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(doneTyping, doneTypingInterval);
+});
+
+socket.on("write", (client) => {
+  if (client.dest == me.id) {
+    let meLink = [...AllLink].filter((a) => a.href.includes(client.id));
+    meLink[0].children[0].children[1].innerHTML = "écrit...";
+    meLink[0].children[0].children[1].style =
+      "color:blue;font-size:22px;font-weight:bold";
+  }
+});
+
+socket.on("nowrite", (client) => {
+  if (client.dest == me.id) {
+    let meLink = [...AllLink].filter((a) => a.href.includes(client.id));
+    let user = [...membres].filter((a) => a.id == client.id);
+    meLink[0].children[0].children[1].style = "";
+    meLink[0].children[0].children[1].innerHTML =
+      user[0].login +
+      (user[0].connect
+        ? " online"
+        : " offline " + moment(new Date(user[0].last)).fromNow());
+  }
+});
+
+function doneTyping() {
+  let destId = linkActive.href.substr(linkActive.href.indexOf("#") + 1);
+  socket.emit("nowrite", { id: me.id, dest: destId });
+}
+
 function createBlock(b) {
   let block = document.createElement(b);
   return block;
@@ -260,4 +315,8 @@ function scrollBody() {
   bodyMessage.scroll(0, bodyMessage.scrollHeight);
 }
 
-function CorrectCollision(me, user) {}
+function filterByOnline(a, b) {
+  if (a.connect == true && b.connect == false) return -1;
+  if (b.connect == true && a.connect == false) return 1;
+  return 0;
+}
