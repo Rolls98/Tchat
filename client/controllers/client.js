@@ -35,3 +35,18 @@ exports.midle = (req, res, next) => {
 
   next();
 };
+
+exports.Users = async () => {
+  let users = await axios.get("http://localhost:8001/members");
+  let clients = [];
+  for (user of users.data) {
+    clients.push({
+      login: user.login,
+      last: user.lastConnexion,
+      connect: user.connect,
+      id: user._id,
+      messages: user.messages,
+    });
+  }
+  return clients;
+};

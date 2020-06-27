@@ -70,6 +70,18 @@ socket.on("allUsers", (users) => {
     let lien = link;
     let m_msg = "";
     link.addEventListener("click", (e) => {
+      socket.on("allUsers", (users) => {
+        debugger;
+        membres = [...users];
+        console.log("Allmembers ", membres);
+        for (user of membres) {
+          if (user.login == mylogin) {
+            me = user;
+            console.log(me);
+          }
+        }
+      });
+      debugger;
       let p = lien.parentNode.parentNode;
       p.className = "active";
       disableAllLink(lien);
@@ -80,10 +92,8 @@ socket.on("allUsers", (users) => {
       let messagesMe = me.messages.filter(
         (m) => m.dest == user[0].id || m.env == user[0].id
       );
-      let messageUser = user[0].messages.filter(
-        (m) => m.dest == user[0].id || m.env == user[0].id
-      );
-      let messages = [...messagesMe, ...messageUser];
+
+      let messages = [...messagesMe];
 
       let Header = `
       <div class="d-flex bd-highlight">
@@ -117,7 +127,7 @@ socket.on("allUsers", (users) => {
       `;
 
       for (message of messages) {
-        if (message.env == me.id) {
+        if (message.dest == me.id) {
           m_msg += `
           <div class="d-flex justify-content-start mb-4">
           <div class="img_cont_msg">
@@ -131,7 +141,7 @@ socket.on("allUsers", (users) => {
             <span class="msg_time">${message.date}</span>
           </div>
         </div>`;
-        } else if (message.dest == me.id) {
+        } else if (message.env == me.id) {
           m_msg += `
           <div class="d-flex justify-content-end mb-4">
           
@@ -151,6 +161,7 @@ socket.on("allUsers", (users) => {
 
       headerMessage.innerHTML = Header;
       bodyMessage.innerHTML = m_msg;
+      m_msg = "";
       scrollBody();
     });
   });
@@ -248,3 +259,5 @@ function disableAllLink(l) {
 function scrollBody() {
   bodyMessage.scroll(0, bodyMessage.scrollHeight);
 }
+
+function CorrectCollision(me, user) {}

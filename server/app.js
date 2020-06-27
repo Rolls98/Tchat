@@ -43,7 +43,7 @@ db.once("open", () => {
 
       client.save((err, r) => {
         if (err) return console.log("Error lors de l'inscription");
-        console.log(r);
+
         res.json({ inscription: true });
       });
     } else {
@@ -62,7 +62,8 @@ db.once("open", () => {
     let info = req.body;
     console.log("infonv : ", info.login);
     let r = await Client.updateOne({ login: info.login }, { connect: true });
-    if (r.nModified == 1 && r.n == 1) {
+
+    if (r.ok == 1 && r.n == 1) {
       res.json({ success: true });
     } else {
       res.json({ success: false });
@@ -120,7 +121,6 @@ db.once("open", () => {
         if (err) return console.log("Error ", err);
 
         if (res) {
-          console.log(res);
           Client.updateOne(
             { _id: msgDest._id },
             { messages: msgDest.messages },

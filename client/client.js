@@ -70,32 +70,22 @@ io.listen(server);
 let me = null;
 
 io.sockets.on("connection", async (socket) => {
-  let users = await axios.get("http://localhost:8001/members");
-  let clients = [];
+  let clients = await contr.Users();
 
   let messages = [];
-
-  for (user of users.data) {
-    clients.push({
-      login: user.login,
-      last: user.lastConnexion,
-      connect: user.connect,
-      id: user._id,
-      messages: user.messages,
-    });
-  }
 
   socket.on("nvClient", async (login) => {
     console.log(login + " connecté");
     me = login;
     let result = await axios.post("http://localhost:8001/nvClient", { login });
-    if (result) {
+    if (result.data.success) {
+      clients = await contr.Users();
+      console.log("client : ", clients);
       clients.forEach((c) => {
         if (c.login == login) {
           c.connect = true;
         }
       });
-      console.log("Connectes : ", clients);
       socket.emit("allUsers", clients);
       socket.broadcast.emit("allUsers", clients);
     }
@@ -104,25 +94,34 @@ io.sockets.on("connection", async (socket) => {
   socket.emit("allMessage", messages);
   socket.on("nv_msg", async (msg) => {
     let result = await axios.post("http://localhost:8001/insertMessage", msg);
-    if (result) {
+    if (result.data.success) {
+      clients = await contr.Users();
+      clients.forEach((c) => {
+        if (c.login == me) {
+          c.connect = true;
+        }
+      });
       socket.emit("nv_msg", msg);
       socket.broadcast.emit("nv_msg", msg);
+      socket.emit("allUsers", clients);
+      socket.broadcast.emit("allUsers", clients);
     }
   });
 
   socket.on("deconnexion", async () => {
     console.log(me, " deconnecte");
+
     if (me != null) {
       let result = await axios.post("http://localhost:8001/c_disc", {
         login: me,
       });
-      if (result) {
+      if (result.data.success) {
+        clients = await contr.Users();
         clients.forEach((c) => {
           if (c.login == me) {
             c.connect = false;
           }
         });
-        console.log("deconnexion ", clients);
         me = null;
         socket.emit("allUsers", clients);
         socket.broadcast.emit("allUsers", clients);
@@ -130,16 +129,13 @@ io.sockets.on("connection", async (socket) => {
     }
   });
   socket.on("disconnect", async (reason) => {
-    if (reason === "io server disconnect") {
-      // the disconnection was initiated by the server, you need to reconnect manually
-      socket.connect();
-    }
-
+    clients = await contr.Users();
     if (me != null) {
       let result = await axios.post("http://localhost:8001/c_disc", {
         login: me,
       });
-      if (result) {
+      if (result.data.success) {
+        clients = await contr.Users();
         clients.forEach((c) => {
           if (c.login == me) {
             c.connect = false;
