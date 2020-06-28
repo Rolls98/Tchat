@@ -4,7 +4,7 @@ let typingTimer = null;
 let doneTypingInterval = 1000;
 let contact = document.querySelector(".contacts");
 let mylogin = document.querySelector("#me").textContent;
-let chat = document;
+//let chat = document;
 let disc = document.querySelector(".disc");
 let membres = null;
 let AllLink = null;
@@ -12,7 +12,7 @@ let me = null;
 let form = document.querySelector("#form");
 let headerMessage = document.querySelector(".card-header.msg_head");
 let bodyMessage = document.querySelector(".card-body.msg_card_body");
-let linkActive = null;
+let linkActive = document.querySelector("a");
 
 socket.emit("nvClient", mylogin);
 
@@ -21,11 +21,11 @@ disc.addEventListener("click", () => {
 });
 socket.on("allUsers", (users) => {
   contact.innerHTML = "";
-  membres = [...users].sort(filterByOnline);
+  membres = [...users].sort(filterByOnline).sort(filterByHoursMessage);
+  let tabme = membres.filter((m) => m.login == mylogin);
+  me = tabme[0];
   for (user of membres) {
-    console.log(user.messages);
     if (user.login == mylogin) {
-      me = user;
       continue;
     }
     let li = createBlock("li");
@@ -37,11 +37,17 @@ socket.on("allUsers", (users) => {
     let span2 = createBlock("span");
     let p = createBlock("p");
     let a = createBlock("a");
+    let notif = createBlock("span");
 
     a.href = "#" + user.id;
 
+    let notvisiteMessage = user.messages.filter(
+      (m) => m.see == false && m.env == me.id
+    );
+
     imgUser.src = "images/profile.jpeg";
     imgUser.className = "rounded-circle user_img";
+    notif.className = "notif";
     span.className = user.connect ? "online_icon" : "online_icon offline";
     p.innerHTML =
       user.login +
@@ -51,6 +57,8 @@ socket.on("allUsers", (users) => {
     div1.className = "d-flex bd-highlight";
     divImg.className = "img_cont";
     divInfo.className = "user_info";
+    notif.innerHTML =
+      notvisiteMessage.length > 0 ? notvisiteMessage.length : "";
     span2.innerHTML = user.login;
 
     li.appendChild(div1);
@@ -59,16 +67,12 @@ socket.on("allUsers", (users) => {
     div1.appendChild(divImg);
     divInfo.appendChild(span2);
     divInfo.appendChild(p);
+    divInfo.appendChild(notif);
     a.appendChild(divInfo);
     div1.appendChild(a);
     contact.appendChild(li);
 
     /***** Created Header Message */
-
-    let card = createBlock("div");
-    card.className = "card";
-    let cardH = createBlock("div");
-    cardH.className = "card_header";
   }
   AllLink = document.querySelectorAll(".d-flex.bd-highlight a");
 
@@ -78,18 +82,7 @@ socket.on("allUsers", (users) => {
     link.addEventListener("click", (e) => {
       $("#msg")[0].value = "";
       linkActive = lien;
-      socket.on("allUsers", (users) => {
-        debugger;
-        membres = [...users];
-        console.log("Allmembers ", membres);
-        for (user of membres) {
-          if (user.login == mylogin) {
-            me = user;
-            console.log(me);
-          }
-        }
-      });
-      debugger;
+
       let p = lien.parentNode.parentNode;
       p.className = "active";
       disableAllLink(lien);
@@ -97,6 +90,7 @@ socket.on("allUsers", (users) => {
       e.preventDefault();
       let userId = lien.href.substring(lien.href.indexOf("#") + 1);
       let user = membres.filter((m) => m.id == userId);
+      seeAllMessages(user[0]);
       let messagesMe = me.messages.filter(
         (m) => m.dest == user[0].id || m.env == user[0].id
       );
@@ -145,7 +139,12 @@ socket.on("allUsers", (users) => {
             />
           </div>
           <div class="msg_cotainer">
-            ${message.msg}
+            ${
+              message.msg +
+              (message.see == true
+                ? '  <i class="fa fa-eye" aria-hidden="true"></i>'
+                : "")
+            }
             <span class="msg_time">${moment(new Date(message.date)).format(
               "hh:mm:ss , dddd"
             )}</span>
@@ -193,7 +192,12 @@ socket.on("nv_msg", (msg) => {
         />
       </div>
       <div class="msg_cotainer">
-        ${msg.msg}
+        ${
+          msg.msg +
+          (msg.see == true
+            ? '  <i class="fa fa-eye" aria-hidden="true"></i>'
+            : "")
+        }
         <span class="msg_time">${msg.date}</span>
       </div>
     </div>`;
@@ -201,13 +205,15 @@ socket.on("nv_msg", (msg) => {
     msg.dest == me.id &&
     linkActive.href.substr(linkActive.href.indexOf("#") + 1) == msg.env
   ) {
+    let usr = membres.filter((user) => user.id == msg.env);
+    seeAllMessages(usr[0]);
     m_msg = `
       <div class="d-flex justify-content-end mb-4">
       
       <div class="msg_cotainer_send">
         ${msg.msg}
         <span class="msg_time_send">${moment(new Date(msg.date)).format(
-          "hh:mm:ss"
+          "hh:mm:ss, dddd"
         )}</span>
       </div>
       <div class="img_cont_msg">
@@ -228,13 +234,14 @@ form.addEventListener("submit", (e) => {
   let dest = document.querySelector("#dest span").textContent.substr(10);
   let destId = membres.filter((m) => m.login == dest);
   let msg = document.querySelector("#msg");
-  console.log(destId);
+
   socket.emit("nv_msg", {
     env: me.id,
     msg: msg.value,
     dest: destId[0].id,
     send: true,
     date: new Date(),
+    see: false,
   });
   msg.value = "";
 });
@@ -319,4 +326,26 @@ function filterByOnline(a, b) {
   if (a.connect == true && b.connect == false) return -1;
   if (b.connect == true && a.connect == false) return 1;
   return 0;
+}
+
+function filterByHoursMessage(a, b) {
+  let lastA = a.messages[a.messages.length - 1];
+  let lastB = b.messages[b.messages.length - 1];
+  let dateA = new Date(lastA.date);
+  let dateB = new Date(lastB.date);
+
+  if (dateA > dateB) return -1;
+  if (dateA < dateB) return 1;
+
+  return 0;
+}
+
+function seeAllMessages(us) {
+  us.messages.forEach((m) => {
+    if (m.see == false && m.env == me.id) {
+      m.see = true;
+    }
+  });
+
+  socket.emit("updateMessage", { login: us.login, messages: us.messages });
 }

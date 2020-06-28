@@ -109,6 +109,22 @@ db.once("open", () => {
     });
   });
 
+  app.post("/updateMessage", async (req, res) => {
+    let data = req.body;
+    Client.updateOne(
+      { login: data.info.login },
+      { messages: data.info.messages },
+      (err, raw) => {
+        if (err) return console.log("Error update Message ", err);
+        if (raw) {
+          res.json({ success: true });
+        } else {
+          res.json({ success: false });
+        }
+      }
+    );
+  });
+
   app.post("/insertMessage", async (req, response) => {
     let msg = req.body;
     let msgEnv = await Client.findOne({ _id: msg.env });

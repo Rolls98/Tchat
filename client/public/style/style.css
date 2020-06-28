@@ -301,3 +301,19 @@ html {
   padding: 15px;
   background-color: #7f7fd5;
 }
+
+li {
+  position: relative !important;
+}
+
+.notif {
+  display: inline-block;
+  position: absolute;
+  right: 15px;
+  top: 17px;
+  width: 25px;
+  font-size: 18px;
+  background: red;
+  text-align: center;
+  border-radius: 50%;
+}

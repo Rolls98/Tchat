@@ -80,7 +80,6 @@ io.sockets.on("connection", async (socket) => {
     let result = await axios.post("http://localhost:8001/nvClient", { login });
     if (result.data.success) {
       clients = await contr.Users();
-
       clients.forEach((c) => {
         if (c.login == login) {
           c.connect = true;
@@ -115,6 +114,18 @@ io.sockets.on("connection", async (socket) => {
     }
   });
 
+  socket.on("updateMessage", async (info) => {
+    let result = await axios.post("http://localhost:8001/updateMessage", {
+      info,
+    });
+
+    if (result.data.success) {
+      clients = await contr.Users();
+      socket.emit("allUsers", clients);
+      socket.broadcast.emit("allUsers", clients);
+    }
+  });
+
   socket.on("deconnexion", async () => {
     console.log(me, " deconnecte");
 
@@ -136,7 +147,16 @@ io.sockets.on("connection", async (socket) => {
       }
     }
   });
-  socket.on("disconnect", async (reason) => {
+
+  /**
+   *
+   *
+   */
+
+  socket.on("disconnect", (reason) => {
+    console.log("la raison de la deconnexion ", reason);
+  });
+  /*socket.on("disconnect", async (reason) => {
     clients = await contr.Users();
     if (me != null) {
       let result = await axios.post("http://localhost:8001/c_disc", {
@@ -157,5 +177,25 @@ io.sockets.on("connection", async (socket) => {
       // else the socket will automatically try to reconnect
     }
     me = null;
+  });*/
+});
+
+process.on("SIGINT", async () => {
+  console.log("Server will stoped on few second");
+  let clients = await contr.Users();
+  let finRes = [];
+  clients.forEach(async (c) => {
+    console.log(c);
+    let result = await axios.post("http://localhost:8001/c_disc", {
+      login: c,
+      last: new Date(),
+    });
+    console.log(result);
+    finRes.push(result);
   });
+  console.log(finRes);
+  if (finRes.length == clients.length) {
+    console.log(finRes);
+    process.exit();
+  }
 });
