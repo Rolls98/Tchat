@@ -1,4 +1,9 @@
-let socket = io.connect("http://localhost:8002/");
+let socket = io.connect("http://localhost:8002/", {
+  reconnection: true,
+  reconnectionDelay: 500,
+  reconnectionAttempts: 10,
+  origins: "*",
+});
 
 let typingTimer = null;
 let doneTypingInterval = 1000;
@@ -78,26 +83,33 @@ socket.on("allUsers", (users) => {
 
   AllLink.forEach((link) => {
     let lien = link;
-    let m_msg = "";
     link.addEventListener("click", (e) => {
       $("#msg")[0].value = "";
       linkActive = lien;
 
-      let p = lien.parentNode.parentNode;
-      p.className = "active";
-      disableAllLink(lien);
-      bodyMessage.innerHTML = "";
-      e.preventDefault();
-      let userId = lien.href.substring(lien.href.indexOf("#") + 1);
-      let user = membres.filter((m) => m.id == userId);
-      seeAllMessages(user[0]);
-      let messagesMe = me.messages.filter(
-        (m) => m.dest == user[0].id || m.env == user[0].id
-      );
+      ActualiseMsg(membres, lien, me);
+      scrollBody();
+    });
+  });
+});
 
-      let messages = [...messagesMe];
+function ActualiseMsg(all, lien, me) {
+  let m_msg = "";
+  let p = lien.parentNode.parentNode;
+  p.className = "active";
+  disableAllLink(lien);
+  bodyMessage.innerHTML = "";
 
-      let Header = `
+  let userId = lien.href.substring(lien.href.indexOf("#") + 1);
+  let user = all.filter((m) => m.id == userId);
+  seeAllMessages(user[0]);
+  let messagesMe = me.messages.filter(
+    (m) => m.dest == user[0].id || m.env == user[0].id
+  );
+
+  let messages = [...messagesMe];
+
+  let Header = `
       <div class="d-flex bd-highlight">
         <div class="img_cont">
           <img
@@ -128,9 +140,9 @@ socket.on("allUsers", (users) => {
       </div>
       `;
 
-      for (message of messages) {
-        if (message.dest == me.id) {
-          m_msg += `
+  for (message of messages) {
+    if (message.dest == me.id) {
+      m_msg += `
           <div class="d-flex justify-content-start mb-4">
           <div class="img_cont_msg">
             <img
@@ -139,19 +151,19 @@ socket.on("allUsers", (users) => {
             />
           </div>
           <div class="msg_cotainer">
-            ${
-              message.msg +
-              (message.see == true
-                ? '  <i class="fa fa-eye" aria-hidden="true"></i>'
-                : "")
-            }
+          ${
+            message.msg +
+            (message.see == true
+              ? '  <i class="fa fa-eye" aria-hidden="true"></i>'
+              : "")
+          }
             <span class="msg_time">${moment(new Date(message.date)).format(
               "hh:mm:ss , dddd"
             )}</span>
           </div>
         </div>`;
-        } else if (message.env == me.id) {
-          m_msg += `
+    } else if (message.env == me.id) {
+      m_msg += `
           <div class="d-flex justify-content-end mb-4">
           
           <div class="msg_cotainer_send">
@@ -167,17 +179,14 @@ socket.on("allUsers", (users) => {
             />
           </div>
         </div>`;
-        }
-      }
+    }
+  }
 
-      headerMessage.innerHTML = Header;
-      bodyMessage.innerHTML = m_msg;
-      m_msg = "";
-      scrollBody();
-    });
-  });
-});
-("");
+  headerMessage.innerHTML = Header;
+  bodyMessage.innerHTML = m_msg;
+  m_msg = "";
+  scrollBody();
+}
 
 socket.on("nv_msg", (msg) => {
   let m_msg = "";
@@ -205,6 +214,7 @@ socket.on("nv_msg", (msg) => {
     msg.dest == me.id &&
     linkActive.href.substr(linkActive.href.indexOf("#") + 1) == msg.env
   ) {
+    debugger;
     let usr = membres.filter((user) => user.id == msg.env);
     seeAllMessages(usr[0]);
     m_msg = `
@@ -224,8 +234,8 @@ socket.on("nv_msg", (msg) => {
       </div>
     </div>`;
   }
-
   bodyMessage.innerHTML += m_msg;
+  ActualiseMsg(membres, linkActive, me);
   scrollBody();
 });
 
@@ -254,7 +264,7 @@ search.addEventListener("input", (e) => {
   for (l of li) {
     let user = l.children[1].children[0].children[0].textContent.toLowerCase();
 
-    if (!user.includes(search.value)) {
+    if (!user.includes(search.value.toLowerCase())) {
       l.parentNode.style.display = "none";
     } else {
       l.parentNode.style.display = "block";
@@ -280,6 +290,29 @@ $("#msg").keyup(function () {
 
 socket.on("write", (client) => {
   if (client.dest == me.id) {
+    let writen = `
+    <div class="d-flex justify-content-end mb-4 user-writen">
+    <div class="msg_cotainer_send">
+      ...
+    </div>
+    <div class="img_cont_msg">
+      <img
+        src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"
+        class="rounded-circle user_img_msg"
+      />
+    </div>
+    
+  </div>
+    
+    `;
+
+    if (linkActive.href.substr(linkActive.href.indexOf("#") + 1) == client.id) {
+      if ($(".user-writen").length == 0) {
+        bodyMessage.innerHTML += writen;
+        scrollBody();
+      }
+    }
+
     let meLink = [...AllLink].filter((a) => a.href.includes(client.id));
     meLink[0].children[0].children[1].innerHTML = "écrit...";
     meLink[0].children[0].children[1].style =
@@ -289,6 +322,10 @@ socket.on("write", (client) => {
 
 socket.on("nowrite", (client) => {
   if (client.dest == me.id) {
+    let userWrite = $(".user-writen");
+    if (userWrite.length > 0) {
+      userWrite.remove();
+    }
     let meLink = [...AllLink].filter((a) => a.href.includes(client.id));
     let user = [...membres].filter((a) => a.id == client.id);
     meLink[0].children[0].children[1].style = "";

@@ -102,15 +102,10 @@ io.sockets.on("connection", async (socket) => {
     let result = await axios.post("http://localhost:8001/insertMessage", msg);
     if (result.data.success) {
       clients = await contr.Users();
-      clients.forEach((c) => {
-        if (c.login == me) {
-          c.connect = true;
-        }
-      });
-      socket.emit("nv_msg", msg);
-      socket.broadcast.emit("nv_msg", msg);
       socket.emit("allUsers", clients);
       socket.broadcast.emit("allUsers", clients);
+      socket.emit("nv_msg", msg);
+      socket.broadcast.emit("nv_msg", msg);
     }
   });
 
