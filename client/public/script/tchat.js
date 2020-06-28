@@ -5,6 +5,8 @@ let socket = io.connect("http://localhost:8002/", {
   origins: "*",
 });
 
+let song_recv = new Audio("../musics/me-too.mp3");
+let song_write = new Audio("../musics/time-is-now.mp3");
 let typingTimer = null;
 let doneTypingInterval = 1000;
 let contact = document.querySelector(".contacts");
@@ -190,7 +192,9 @@ function ActualiseMsg(all, lien, me) {
 
 socket.on("nv_msg", (msg) => {
   let m_msg = "";
-
+  if (msg.dest == me.id) {
+    song_recv.play();
+  }
   if (msg.env == me.id) {
     m_msg = `
       <div class="d-flex justify-content-start mb-4">
@@ -214,7 +218,6 @@ socket.on("nv_msg", (msg) => {
     msg.dest == me.id &&
     linkActive.href.substr(linkActive.href.indexOf("#") + 1) == msg.env
   ) {
-    debugger;
     let usr = membres.filter((user) => user.id == msg.env);
     seeAllMessages(usr[0]);
     m_msg = `
@@ -245,14 +248,18 @@ form.addEventListener("submit", (e) => {
   let destId = membres.filter((m) => m.login == dest);
   let msg = document.querySelector("#msg");
 
-  socket.emit("nv_msg", {
-    env: me.id,
-    msg: msg.value,
-    dest: destId[0].id,
-    send: true,
-    date: new Date(),
-    see: false,
-  });
+  if (msg.value.trim() != "") {
+    socket.emit("nv_msg", {
+      env: me.id,
+      msg: msg.value,
+      dest: destId[0].id,
+      send: true,
+      date: new Date(),
+      see: false,
+    });
+  } else {
+    msg.value = "";
+  }
   msg.value = "";
 });
 
@@ -293,7 +300,14 @@ socket.on("write", (client) => {
     let writen = `
     <div class="d-flex justify-content-end mb-4 user-writen">
     <div class="msg_cotainer_send">
-      ...
+      <div class="spinner">
+        <div class="bounce1">
+        </div>
+        <div class="bounce2">
+        </div>
+        <div class="bounce3">
+      </div>
+</div>
     </div>
     <div class="img_cont_msg">
       <img
@@ -308,8 +322,15 @@ socket.on("write", (client) => {
 
     if (linkActive.href.substr(linkActive.href.indexOf("#") + 1) == client.id) {
       if ($(".user-writen").length == 0) {
+        song_write.play();
         bodyMessage.innerHTML += writen;
         scrollBody();
+      } else {
+        if (song_write.paused) {
+          setTimeout(() => {
+            song_write.play();
+          }, 1000);
+        }
       }
     }
 
@@ -324,7 +345,8 @@ socket.on("nowrite", (client) => {
   if (client.dest == me.id) {
     let userWrite = $(".user-writen");
     if (userWrite.length > 0) {
-      userWrite.remove();
+      userWrite[0].classList.add("hidden");
+      setTimeout(() => userWrite.remove(), 200);
     }
     let meLink = [...AllLink].filter((a) => a.href.includes(client.id));
     let user = [...membres].filter((a) => a.id == client.id);
@@ -378,11 +400,13 @@ function filterByHoursMessage(a, b) {
 }
 
 function seeAllMessages(us) {
-  us.messages.forEach((m) => {
-    if (m.see == false && m.env == me.id) {
-      m.see = true;
-    }
-  });
+  if (us.messages != undefined) {
+    us.messages.forEach((m) => {
+      if (m.see == false && m.env == me.id) {
+        m.see = true;
+      }
+    });
+  }
 
   socket.emit("updateMessage", { login: us.login, messages: us.messages });
 }
