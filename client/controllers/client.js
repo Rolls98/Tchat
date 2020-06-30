@@ -1,7 +1,7 @@
 let axios = require("axios");
 let config = require("../config/config.json");
 
-let port = process.env.port || config.server.port;
+let port = process.env.PORT || config.server.port;
 
 exports.Connexion = (req, res) => {
   if (req.body != undefined) {
