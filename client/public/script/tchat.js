@@ -122,7 +122,9 @@ function ActualiseMsg(all, lien, me) {
             src="https://static.turbosquid.com/Preview/001292/481/WV/_D.jpg"
             class="rounded-circle user_img"
           />
-          <span class="online_icon"></span>
+          <span class="${
+            user[0].connect ? "online_icon" : "online_icon offline"
+          }"></span>
         </div>
         <div class="user_info" id="dest">
           <span>Chat with ${user[0].login}</span>
@@ -395,13 +397,18 @@ function filterByOnline(a, b) {
 function filterByHoursMessage(a, b) {
   let lastA = a.messages[a.messages.length - 1];
   let lastB = b.messages[b.messages.length - 1];
-  let dateA = new Date(lastA.date);
-  let dateB = new Date(lastB.date);
 
-  if (dateA > dateB) return -1;
-  if (dateA < dateB) return 1;
+  if (lastA != undefined && lastB != undefined) {
+    let dateA = new Date(lastA.date);
+    let dateB = new Date(lastB.date);
 
-  return 0;
+    if (dateA > dateB) return -1;
+    if (dateA < dateB) return 1;
+
+    return 0;
+  }
+
+  return -1;
 }
 
 function seeAllMessages(us) {

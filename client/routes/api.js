@@ -1,5 +1,6 @@
 const express = require("express");
 const { verifie } = require("../../server/fonctions/func.js");
+
 const Client = require("../db/mongoose");
 const router = express.Router();
 
@@ -32,6 +33,7 @@ router
   })
 
   .post("/nvClient", async (req, res) => {
+    let info = req.body;
     let r = await Client.updateOne({ login: info.login }, { connect: true });
     if (r.ok == 1 && r.n == 1) {
       console.log("reponse envoyé");

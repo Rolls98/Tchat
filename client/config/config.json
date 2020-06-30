@@ -4,7 +4,7 @@
     "port": "8002"
   },
   "db": {
-    "host": "localhost:",
+    "host": "mongodb://localhost:27017/chat",
     "port": "27017/",
     "base": "chat"
   }

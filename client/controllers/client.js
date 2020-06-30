@@ -1,7 +1,7 @@
 let axios = require("axios");
 let config = require("../config/config.json");
 
-exports.Connexion = (req, res, next) => {
+exports.Connexion = (req, res) => {
   if (req.body != undefined) {
     axios
       .post(
@@ -9,6 +9,7 @@ exports.Connexion = (req, res, next) => {
         req.body
       )
       .then((result) => {
+        console.log("bon");
         if (result.data.connexion) {
           let client = result.data.client;
           req.session.Client = {
