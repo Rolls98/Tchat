@@ -1,13 +1,12 @@
 let axios = require("axios");
 let config = require("../config/config.json");
 
+let port = process.env.port || config.server.port;
+
 exports.Connexion = (req, res, next) => {
   if (req.body != undefined) {
     axios
-      .post(
-        config.server.host + ":" + config.server.port + "/api/connexion",
-        req.body
-      )
+      .post(config.server.host + ":" + port + "/api/connexion", req.body)
       .then((result) => {
         if (result.data.connexion) {
           let client = result.data.client;
@@ -30,9 +29,7 @@ exports.Connexion = (req, res, next) => {
 };
 
 exports.Users = async () => {
-  let users = await axios.get(
-    config.server.host + ":" + config.server.port + "/api/members"
-  );
+  let users = await axios.get(config.server.host + ":" + port + "/api/members");
   let clients = [];
   if (users.data.success) {
     for (user of users.data.results) {
