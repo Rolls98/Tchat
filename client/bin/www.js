@@ -5,7 +5,7 @@ const contr = require("../controllers/client");
 let axios = require("axios");
 const config = require("../config/config.json");
 
-let port = process.env.port || config.server.port;
+let port = process.env.PORT || config.server.port;
 
 server.listen(port, () => {
   console.log("Server started on ", port);
