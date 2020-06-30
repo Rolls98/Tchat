@@ -1,11 +1,11 @@
 {
-    "server": {
-        "host": "https://tchatjs.herokuapp.com:",
-        "port": "8002"
-    },
-    "db": {
-        "host": "localhost:",
-        "port": "27017/",
-        "base": "chat"
-    }
+  "server": {
+    "host": "http://localhost",
+    "port": "8002"
+  },
+  "db": {
+    "host": "mongodb://localhost:27017/chat",
+    "port": "27017/",
+    "base": "chat"
+  }
 }

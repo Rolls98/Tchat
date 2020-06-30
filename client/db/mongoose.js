@@ -1,13 +1,10 @@
 const mongoose = require("mongoose");
 const config = require("../config/config.json");
 
-mongoose.connect(
-  "mongodb://" + config.db.host + config.db.port + config.db.base,
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-);
+mongoose.connect(config.db.host, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 mongoose.connection.on("open", () => {
   console.log("Mongodb connected");

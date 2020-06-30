@@ -13,7 +13,7 @@ $(document).ready(function () {
     if (v.success) {
       let client = v.infos;
       $.ajax({
-        url: "http://localhost:8001/inscription",
+        url: "http://localhost:8002/api/inscription",
         method: "post",
         data: client,
         typeData: "json",
@@ -29,7 +29,7 @@ $(document).ready(function () {
           }
         },
         error: (e) => {
-          console.error(e.getMessage());
+          console.log(e);
         },
       });
     } else {
