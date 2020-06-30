@@ -54,7 +54,11 @@ db.once("open", () => {
   app.get("/members", (req, res) => {
     Client.find((err, r) => {
       if (err) return console.log(err);
-      res.json(r);
+      if (r.length > 0) {
+        res.json({ success: true, results: r });
+      } else {
+        res.json({ success: false });
+      }
     });
   });
 
@@ -62,8 +66,8 @@ db.once("open", () => {
     let info = req.body;
     console.log("infonv : ", info.login);
     let r = await Client.updateOne({ login: info.login }, { connect: true });
-
     if (r.ok == 1 && r.n == 1) {
+      console.log("reponse envoyé");
       res.json({ success: true });
     } else {
       res.json({ success: false });

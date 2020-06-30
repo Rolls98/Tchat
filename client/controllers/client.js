@@ -39,14 +39,22 @@ exports.midle = (req, res, next) => {
 exports.Users = async () => {
   let users = await axios.get("http://localhost:8001/members");
   let clients = [];
-  for (user of users.data) {
-    clients.push({
-      login: user.login,
-      last: user.lastConnexion,
-      connect: user.connect,
-      id: user._id,
-      messages: user.messages,
+  if (users.data.success) {
+    for (user of users.data.results) {
+      clients.push({
+        login: user.login,
+        last: user.lastConnexion,
+        connect: user.connect,
+        id: user._id,
+        messages: user.messages,
+      });
+    }
+    return new Promise((resolve, reject) => {
+      if (clients.length > 0) {
+        resolve(clients);
+      } else {
+        reject({ success: false });
+      }
     });
   }
-  return clients;
 };

@@ -65,28 +65,28 @@ app.get("/disconnect", (req, res) => {
 
 app.post("/connexion", contr.Connexion);
 
-server.listen(8002, () => {
+server.listen(3000, () => {
   console.log("Client started");
 });
 
 let me = null;
 
 io.on("connection", async (socket) => {
+  console.log("socket connected");
   let clients = await contr.Users();
 
   let messages = [];
+
+  socket.emit("connex", "bonjour");
 
   socket.on("nvClient", async (login) => {
     console.log(login + " connecté");
     me = login;
     let result = await axios.post("http://localhost:8001/nvClient", { login });
+    console.log("result ", result.data);
     if (result.data.success) {
       clients = await contr.Users();
-      clients.forEach((c) => {
-        if (c.login == login) {
-          c.connect = true;
-        }
-      });
+      console.log("reponse récu");
       socket.emit("allUsers", clients);
       socket.broadcast.emit("allUsers", clients);
     }

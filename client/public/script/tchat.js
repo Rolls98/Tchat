@@ -15,6 +15,10 @@ let headerMessage = document.querySelector(".card-header.msg_head");
 let bodyMessage = document.querySelector(".card-body.msg_card_body");
 let linkActive = document.querySelector("a");
 
+console.log(mylogin);
+socket.on("connex", (r) => {
+  console.log("message du server ", r);
+});
 socket.emit("nvClient", mylogin);
 
 disc.addEventListener("click", () => {
@@ -39,21 +43,9 @@ socket.on("allUsers", (users) => {
     let p = createBlock("p");
     let a = createBlock("a");
     let notif = createBlock("span");
-    let lastMsg = createBlock("span");
-
-    lastMsg.className = "lastMsg";
-    let userLast = user.messages[user.messages.length - 1];
 
     a.href = "#" + user.id;
 
-    lastMsg.innerHTML =
-      userLast.msg.substr(0, 14) +
-      (userLast.msg.length > 15 ? "..." : " ") +
-      (userLast.env == me.id && userLast.see == false
-        ? ' <i class="fa fa-eye" aria-hidden="true"></i>'
-        : " ");
-
-    console.log(userLast);
     if (linkActive.href.substr(linkActive.href.indexOf("#") + 1) == user.id) {
       console.log("test");
       li.className = "active";
@@ -88,7 +80,7 @@ socket.on("allUsers", (users) => {
     divInfo.appendChild(span2);
     divInfo.appendChild(p);
     divInfo.appendChild(notif);
-    divInfo.appendChild(lastMsg);
+
     a.appendChild(divInfo);
     div1.appendChild(a);
     contact.appendChild(li);
