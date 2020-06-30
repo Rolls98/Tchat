@@ -4,7 +4,8 @@
   "description": "Compo de selection",
   "main": "server.js",
   "scripts": {
-    "test": "nodemon server.js"
+    "start": "node client/bin/www.js",
+    "dev": "nodemon client/bin/www.js"
   },
   "author": "Rolls",
   "license": "ISC",

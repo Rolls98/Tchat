@@ -1,11 +1,13 @@
 let axios = require("axios");
+let config = require("../config/config.json");
 
 exports.Connexion = (req, res, next) => {
   if (req.body != undefined) {
-    console.log("excute");
-
     axios
-      .post("http://localhost:8001/connexion", req.body)
+      .post(
+        config.server.host + ":" + config.server.port + "/api/connexion",
+        req.body
+      )
       .then((result) => {
         console.log(result.data);
         if (result.data.connexion) {
@@ -37,7 +39,9 @@ exports.midle = (req, res, next) => {
 };
 
 exports.Users = async () => {
-  let users = await axios.get("http://localhost:8001/members");
+  let users = await axios.get(
+    config.server.host + ":" + config.server.port + "/api/members"
+  );
   let clients = [];
   if (users.data.success) {
     for (user of users.data.results) {
@@ -49,12 +53,6 @@ exports.Users = async () => {
         messages: user.messages,
       });
     }
-    return new Promise((resolve, reject) => {
-      if (clients.length > 0) {
-        resolve(clients);
-      } else {
-        reject({ success: false });
-      }
-    });
+    return clients;
   }
 };

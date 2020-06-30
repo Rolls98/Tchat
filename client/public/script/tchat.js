@@ -18,6 +18,7 @@ let linkActive = document.querySelector("a");
 console.log(mylogin);
 socket.on("connex", (r) => {
   console.log("message du server ", r);
+  socket.emit("ok");
 });
 socket.emit("nvClient", mylogin);
 
