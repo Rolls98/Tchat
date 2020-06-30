@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
-const server = app.listen(8002);
-const io = require("socket.io").listen(server);
+const server = require("http").createServer(app);
+const io = require("socket.io")(server);
 const path = require("path");
 const cors = require("cors");
 const contr = require("./controllers/client");
@@ -65,11 +65,13 @@ app.get("/disconnect", (req, res) => {
 
 app.post("/connexion", contr.Connexion);
 
-io.listen(server);
+server.listen(8002, () => {
+  console.log("Client started");
+});
 
 let me = null;
 
-io.sockets.on("connection", async (socket) => {
+io.on("connection", async (socket) => {
   let clients = await contr.Users();
 
   let messages = [];

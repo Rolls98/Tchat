@@ -1,10 +1,4 @@
-let socket = io.connect("http://localhost:8002/", {
-  reconnection: true,
-  reconnectionDelay: 500,
-  reconnectionAttempts: 10,
-  origins: "*",
-});
-
+let socket = io();
 let song_recv = new Audio("../musics/me-too.mp3");
 let song_write = new Audio("../musics/time-is-now.mp3");
 let typingTimer = null;
@@ -45,8 +39,27 @@ socket.on("allUsers", (users) => {
     let p = createBlock("p");
     let a = createBlock("a");
     let notif = createBlock("span");
+    let lastMsg = createBlock("span");
+
+    lastMsg.className = "lastMsg";
+    let userLast = user.messages[user.messages.length - 1];
 
     a.href = "#" + user.id;
+
+    lastMsg.innerHTML =
+      userLast.msg.substr(0, 14) +
+      (userLast.msg.length > 15 ? "..." : " ") +
+      (userLast.env == me.id && userLast.see == false
+        ? ' <i class="fa fa-eye" aria-hidden="true"></i>'
+        : " ");
+
+    console.log(userLast);
+    if (linkActive.href.substr(linkActive.href.indexOf("#") + 1) == user.id) {
+      console.log("test");
+      li.className = "active";
+    } else {
+      li.className = "";
+    }
 
     let notvisiteMessage = user.messages.filter(
       (m) => m.see == false && m.env == me.id
@@ -75,6 +88,7 @@ socket.on("allUsers", (users) => {
     divInfo.appendChild(span2);
     divInfo.appendChild(p);
     divInfo.appendChild(notif);
+    divInfo.appendChild(lastMsg);
     a.appendChild(divInfo);
     div1.appendChild(a);
     contact.appendChild(li);
@@ -85,10 +99,10 @@ socket.on("allUsers", (users) => {
 
   AllLink.forEach((link) => {
     let lien = link;
+
     link.addEventListener("click", (e) => {
       $("#msg")[0].value = "";
       linkActive = lien;
-
       ActualiseMsg(membres, lien, me);
       scrollBody();
     });
@@ -97,9 +111,6 @@ socket.on("allUsers", (users) => {
 
 function ActualiseMsg(all, lien, me) {
   let m_msg = "";
-  let p = lien.parentNode.parentNode;
-  p.className = "active";
-  disableAllLink(lien);
   bodyMessage.innerHTML = "";
 
   let userId = lien.href.substring(lien.href.indexOf("#") + 1);
@@ -220,6 +231,7 @@ socket.on("nv_msg", (msg) => {
   ) {
     let usr = membres.filter((user) => user.id == msg.env);
     seeAllMessages(usr[0]);
+    ActualiseMsg(membres, linkActive, me);
     m_msg = `
       <div class="d-flex justify-content-end mb-4">
       
@@ -371,7 +383,7 @@ function createBlock(b) {
 
 function disableAllLink(l) {
   AllLink.forEach((link) => {
-    if (l != link) {
+    if (l.href != link.href) {
       link.parentNode.parentNode.className = "";
     }
   });
@@ -406,7 +418,6 @@ function seeAllMessages(us) {
         m.see = true;
       }
     });
+    socket.emit("updateMessage", { login: us.login, messages: us.messages });
   }
-
-  socket.emit("updateMessage", { login: us.login, messages: us.messages });
 }
