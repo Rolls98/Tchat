@@ -4,7 +4,7 @@ const path = require("path");
 const cors = require("cors");
 const session = require("express-session");
 const flash = require("connect-flash");
-
+const morgan = require("morgan");
 let indexRoute = require("./routes/index");
 let apiRoute = require("./routes/api");
 
@@ -15,6 +15,7 @@ app.use(express.static(path.join(__dirname, "public"))); //precision des module 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(cors());
+app.use(morgan("dev"));
 
 app.use(
   session({

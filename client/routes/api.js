@@ -3,11 +3,6 @@ const { verifie } = require("../../server/fonctions/func.js");
 const Client = require("../db/mongoose");
 const router = express.Router();
 
-router.use((req, res, next) => {
-  console.log(req.url);
-  next();
-});
-
 router
   .post("/inscription", (req, res) => {
     let infos = req.body;
@@ -37,8 +32,6 @@ router
   })
 
   .post("/nvClient", async (req, res) => {
-    let info = req.body;
-    console.log("infonv : ", info.login);
     let r = await Client.updateOne({ login: info.login }, { connect: true });
     if (r.ok == 1 && r.n == 1) {
       console.log("reponse envoyé");
