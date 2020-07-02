@@ -85,11 +85,6 @@ io.on("connection", async (socket) => {
       });
       if (result.data.success) {
         clients = await contr.Users();
-        clients.forEach((c) => {
-          if (c.login == me) {
-            c.connect = false;
-          }
-        });
         me = null;
         socket.emit("allUsers", clients);
         socket.broadcast.emit("allUsers", clients);
