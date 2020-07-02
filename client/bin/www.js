@@ -29,10 +29,9 @@ io.on("connection", async (socket) => {
   socket.on("nvClient", async (login) => {
     console.log(login + " connecté");
     me = login;
-    let result = await axios.post(
-      config.server.host + ":" + port + "/api/nvClient",
-      { login }
-    );
+    let result = await axios.post(config.server.host + "/api/nvClient", {
+      login,
+    });
     console.log("result ", result.data);
     if (result.data.success) {
       clients = await contr.Users();
@@ -52,7 +51,7 @@ io.on("connection", async (socket) => {
   socket.emit("allMessage", messages);
   socket.on("nv_msg", async (msg) => {
     let result = await axios.post(
-      config.server.host + ":" + port + "/api/insertMessage",
+      config.server.host + "/api/insertMessage",
       msg
     );
     if (result.data.success) {
@@ -65,12 +64,9 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("updateMessage", async (info) => {
-    let result = await axios.post(
-      config.server.host + ":" + port + "/api/updateMessage",
-      {
-        info,
-      }
-    );
+    let result = await axios.post(config.server.host + "/api/updateMessage", {
+      info,
+    });
 
     if (result.data.success) {
       clients = await contr.Users();
@@ -83,13 +79,10 @@ io.on("connection", async (socket) => {
     console.log(me, " deconnecte");
 
     if (me != null) {
-      let result = await axios.post(
-        config.server.host + ":" + port + "/api/c_disc",
-        {
-          login: me,
-          last: new Date(),
-        }
-      );
+      let result = await axios.post(config.server.host + "/api/c_disc", {
+        login: me,
+        last: new Date(),
+      });
       if (result.data.success) {
         clients = await contr.Users();
         clients.forEach((c) => {
