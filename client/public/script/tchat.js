@@ -407,8 +407,6 @@ function filterByHoursMessage(a, b) {
 
     return 0;
   }
-
-  return -1;
 }
 
 function seeAllMessages(us) {
