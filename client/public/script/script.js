@@ -24,7 +24,7 @@ $(document).ready(function () {
             );
 
             setTimeout(() => {
-              location.replace("https://tchatjs.herokuapp.com/connexion");
+              location.replace("/connexion");
             }, 1500);
           }
         },
