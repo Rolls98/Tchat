@@ -6,7 +6,7 @@ let port = process.env.PORT || config.server.port;
 exports.Connexion = (req, res) => {
   if (req.body != undefined) {
     axios
-      .post(config.server.host + ":" + port + "/api/connexion", req.body)
+      .post(config.server.host + "/api/connexion", req.body)
       .then((result) => {
         console.log("bon");
         if (result.data.connexion) {
@@ -30,7 +30,7 @@ exports.Connexion = (req, res) => {
 };
 
 exports.Users = async () => {
-  let users = await axios.get(config.server.host + ":" + port + "/api/members");
+  let users = await axios.get(config.server.host + "/api/members");
   let clients = [];
   if (users.data.success) {
     for (user of users.data.results) {
